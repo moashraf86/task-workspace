@@ -28,8 +28,8 @@ export function DeleteConfirmDialog({
         <DialogHeader>
           <DialogTitle>Delete Task</DialogTitle>
           <DialogDescription>
-            Are you sure you want to delete "{task?.title}"? This action cannot be
-            undone.
+            Are you sure you want to delete "{task?.title}"? This action cannot
+            be undone.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>

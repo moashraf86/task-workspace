@@ -1,3 +1,5 @@
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { PencilIcon, TrashIcon } from "@phosphor-icons/react";
 import { format } from "date-fns";
 import type { Task } from "@/types/task";
@@ -10,6 +12,7 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 interface TaskCardProps {
   task: Task;
@@ -17,13 +20,17 @@ interface TaskCardProps {
   onDelete: (task: Task) => void;
 }
 
-export function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
+export function TaskCardPresentation({
+  task,
+  onEdit,
+  onDelete,
+}: TaskCardProps) {
   const priorityConfig = PRIORITY_CONFIG[task.priority];
   const dueDate = new Date(task.dueDate);
   const isOverdue = dueDate < new Date() && task.status !== "done";
 
   return (
-    <Card 
+    <Card
       className="hover:shadow-md transition-shadow cursor-pointer"
       onClick={() => onEdit(task)}
     >
@@ -55,9 +62,9 @@ export function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
         </div>
       </CardContent>
       <CardFooter className="pt-0 flex justify-end gap-1">
-        <Button 
-          variant="ghost" 
-          size="icon" 
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={(e) => {
             e.stopPropagation();
             onEdit(task);
@@ -80,5 +87,36 @@ export function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
         </Button>
       </CardFooter>
     </Card>
+  );
+}
+
+export function TaskCard(props: TaskCardProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: props.task.id,
+    data: { task: props.task },
+  });
+
+  const style = {
+    transform: CSS.Translate.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...listeners}
+      {...attributes}
+      className={cn("touch-none", isDragging && "opacity-50")}
+    >
+      <TaskCardPresentation {...props} />
+    </div>
   );
 }

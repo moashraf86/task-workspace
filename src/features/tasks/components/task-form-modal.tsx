@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { toast } from "sonner";
 import type { Task } from "@/types/task";
 import {
   ALL_PRIORITIES,
@@ -34,6 +35,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 
 const taskFormSchema = z.object({
   title: z.string().min(1, "Title is required").max(100, "Title is too long"),
@@ -93,12 +95,16 @@ export function TaskFormModal({
     try {
       if (task) {
         await updateTask(task.id, data);
+        toast.success("Task updated", { description: data.title });
       } else {
         await createTask(data);
+        toast.success("Task created", { description: data.title });
       }
       onOpenChange(false);
-    } catch {
-      // Error handled by store
+    } catch (err) {
+      toast.error(task ? "Failed to update task" : "Failed to create task", {
+        description: err instanceof Error ? err.message : undefined,
+      });
     }
   };
 
@@ -203,7 +209,11 @@ export function TaskFormModal({
                 <FormItem>
                   <FormLabel>Due Date</FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} />
+                    <DatePicker
+                      value={field.value || null}
+                      onChange={field.onChange}
+                      placeholder="Pick a due date"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

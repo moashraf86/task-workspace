@@ -22,6 +22,9 @@ interface TaskActions {
   updateTask: (id: string, data: Partial<TaskFormData>) => Promise<Task>;
   deleteTask: (id: string) => Promise<void>;
   updateTaskStatus: (id: string, status: TaskStatus) => Promise<Task>;
+  reorderTasks: (
+    updates: Array<{ id: string; position: number; status: TaskStatus }>
+  ) => Promise<void>;
   setFilters: (filters: Partial<TaskFilters>) => void;
   resetFilters: () => void;
   setSort: (sort: TaskSort) => void;
@@ -115,6 +118,18 @@ export const useTaskStore = create<TaskState & TaskActions>((set) => ({
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Failed to update task status";
+      set({ error: message });
+      throw new Error(message);
+    }
+  },
+
+  reorderTasks: async (updates) => {
+    try {
+      const updatedTasks = await taskService.reorder(updates);
+      set({ tasks: updatedTasks });
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to reorder tasks";
       set({ error: message });
       throw new Error(message);
     }

@@ -3,8 +3,7 @@ import type { Task, TaskFormData } from "@/types/task";
 const STORAGE_KEY = "task-workspace-tasks";
 
 const generateId = (): string =>
-  crypto.randomUUID?.() ??
-  `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+  crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
 const now = (): string => new Date().toISOString();
 
@@ -17,6 +16,7 @@ const seedTasks: Task[] = [
     priority: "high",
     status: "todo",
     dueDate: "2026-09-05",
+    position: 0,
     createdAt: "2026-08-25T10:00:00.000Z",
     updatedAt: "2026-08-25T10:00:00.000Z",
   },
@@ -28,6 +28,7 @@ const seedTasks: Task[] = [
     priority: "urgent",
     status: "in-progress",
     dueDate: "2026-09-01",
+    position: 0,
     createdAt: "2026-08-24T09:00:00.000Z",
     updatedAt: "2026-08-26T14:30:00.000Z",
   },
@@ -39,6 +40,7 @@ const seedTasks: Task[] = [
     priority: "medium",
     status: "in-review",
     dueDate: "2026-09-03",
+    position: 0,
     createdAt: "2026-08-23T11:00:00.000Z",
     updatedAt: "2026-08-27T08:15:00.000Z",
   },
@@ -50,6 +52,7 @@ const seedTasks: Task[] = [
     priority: "medium",
     status: "done",
     dueDate: "2026-08-28",
+    position: 0,
     createdAt: "2026-08-20T08:00:00.000Z",
     updatedAt: "2026-08-27T16:45:00.000Z",
   },
@@ -61,6 +64,7 @@ const seedTasks: Task[] = [
     priority: "low",
     status: "todo",
     dueDate: "2026-09-10",
+    position: 1,
     createdAt: "2026-08-26T13:00:00.000Z",
     updatedAt: "2026-08-26T13:00:00.000Z",
   },
@@ -72,6 +76,7 @@ const seedTasks: Task[] = [
     priority: "high",
     status: "in-progress",
     dueDate: "2026-09-02",
+    position: 1,
     createdAt: "2026-08-25T15:00:00.000Z",
     updatedAt: "2026-08-27T10:20:00.000Z",
   },
@@ -83,6 +88,7 @@ const seedTasks: Task[] = [
     priority: "medium",
     status: "todo",
     dueDate: "2026-09-08",
+    position: 2,
     createdAt: "2026-08-27T09:00:00.000Z",
     updatedAt: "2026-08-27T09:00:00.000Z",
   },
@@ -94,6 +100,7 @@ const seedTasks: Task[] = [
     priority: "high",
     status: "in-review",
     dueDate: "2026-09-04",
+    position: 1,
     createdAt: "2026-08-22T10:00:00.000Z",
     updatedAt: "2026-08-27T11:00:00.000Z",
   },
@@ -134,9 +141,13 @@ export const taskService = {
   async create(data: TaskFormData): Promise<Task> {
     await delay(300);
     const tasks = loadTasks();
+    const maxPosition = tasks
+      .filter((t) => t.status === data.status)
+      .reduce((max, t) => Math.max(max, t.position), -1);
     const newTask: Task = {
       id: generateId(),
       ...data,
+      position: maxPosition + 1,
       createdAt: now(),
       updatedAt: now(),
     };
@@ -164,11 +175,37 @@ export const taskService = {
   async delete(id: string): Promise<void> {
     await delay(300);
     const tasks = loadTasks();
+    const task = tasks.find((t) => t.id === id);
     const filtered = tasks.filter((t) => t.id !== id);
+    if (task) {
+      filtered.forEach((t) => {
+        if (t.status === task.status && t.position > task.position) {
+          t.position -= 1;
+        }
+      });
+    }
     saveTasks(filtered);
   },
 
   async updateStatus(id: string, status: Task["status"]): Promise<Task> {
     return taskService.update(id, { status });
+  },
+
+  async reorder(
+    updates: Array<{ id: string; position: number; status: Task["status"] }>
+  ): Promise<Task[]> {
+    await delay(200);
+    const tasks = loadTasks();
+    const timestamp = now();
+    for (const update of updates) {
+      const task = tasks.find((t) => t.id === update.id);
+      if (task) {
+        task.position = update.position;
+        task.status = update.status;
+        task.updatedAt = timestamp;
+      }
+    }
+    saveTasks(tasks);
+    return tasks;
   },
 };

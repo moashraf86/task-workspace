@@ -3,7 +3,8 @@ import type { Task, TaskFormData } from "@/types/task";
 const STORAGE_KEY = "task-workspace-tasks";
 
 const generateId = (): string =>
-  crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+  crypto.randomUUID?.() ??
+  `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
 const now = (): string => new Date().toISOString();
 
@@ -192,7 +193,7 @@ export const taskService = {
   },
 
   async reorder(
-    updates: Array<{ id: string; position: number; status: Task["status"] }>
+    updates: Array<{ id: string; position: number; status: Task["status"] }>,
   ): Promise<Task[]> {
     await delay(200);
     const tasks = loadTasks();
@@ -207,5 +208,46 @@ export const taskService = {
     }
     saveTasks(tasks);
     return tasks;
+  },
+
+  async bulkCreate(count: number): Promise<Task[]> {
+    await delay(500);
+    const tasks = loadTasks();
+    const statuses: Task["status"][] = [
+      "todo",
+      "in-progress",
+      "in-review",
+      "done",
+    ];
+    const priorities: Task["priority"][] = ["low", "medium", "high", "urgent"];
+    const baseDate = new Date("2026-09-01");
+
+    for (let i = 0; i < count; i++) {
+      const status = statuses[i % statuses.length];
+      const position = tasks.filter((t) => t.status === status).length;
+      const dueDate = new Date(baseDate);
+      dueDate.setDate(dueDate.getDate() + (i % 30));
+
+      tasks.push({
+        id: generateId(),
+        title: `Demo Task ${i + 1}`,
+        description: `Generated demo task number ${i + 1} for performance testing.`,
+        priority: priorities[i % priorities.length],
+        status,
+        dueDate: dueDate.toISOString().split("T")[0],
+        position,
+        createdAt: now(),
+        updatedAt: now(),
+      });
+    }
+    saveTasks(tasks);
+    return tasks;
+  },
+
+  async resetToSeed(): Promise<Task[]> {
+    await delay(200);
+    const fresh = seedTasks.map((t) => ({ ...t, id: generateId() }));
+    saveTasks(fresh);
+    return fresh;
   },
 };

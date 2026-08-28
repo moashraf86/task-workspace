@@ -10,7 +10,7 @@ import {
   PRIORITY_CONFIG,
   TASK_STATUS_CONFIG,
 } from "@/types/task";
-import { useTaskStore } from "@/store/task-store";
+import { useCreateTask, useUpdateTask } from "@/features/tasks/hooks/use-tasks";
 import {
   Dialog,
   DialogContent,
@@ -58,7 +58,8 @@ export function TaskFormModal({
   onOpenChange,
   task,
 }: TaskFormModalProps) {
-  const { createTask, updateTask } = useTaskStore();
+  const createTask = useCreateTask();
+  const updateTask = useUpdateTask();
 
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskFormSchema),
@@ -94,10 +95,10 @@ export function TaskFormModal({
   const onSubmit = async (data: TaskFormValues) => {
     try {
       if (task) {
-        await updateTask(task.id, data);
+        await updateTask.mutateAsync({ id: task.id, data });
         toast.success("Task updated", { description: data.title });
       } else {
-        await createTask(data);
+        await createTask.mutateAsync(data);
         toast.success("Task created", { description: data.title });
       }
       onOpenChange(false);
@@ -227,7 +228,10 @@ export function TaskFormModal({
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={form.formState.isSubmitting}>
+              <Button
+                type="submit"
+                disabled={form.formState.isSubmitting || createTask.isPending || updateTask.isPending}
+              >
                 {form.formState.isSubmitting
                   ? "Saving..."
                   : task

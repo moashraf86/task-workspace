@@ -6,8 +6,10 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="container flex h-14 items-center">
         <div className="mr-4 flex items-center gap-2">
-          <KanbanIcon className="h-6 w-6" />
-          <span className="font-bold">Task Workspace</span>
+          <div className="flex size-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
+            <KanbanIcon className="size-5" />
+          </div>
+          <span className="font-bold tracking-tight">Task Workspace</span>
         </div>
         <div className="flex-1" />
         <ThemeToggle />

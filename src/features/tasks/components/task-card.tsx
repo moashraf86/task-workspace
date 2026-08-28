@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { PencilIcon, TrashIcon } from "@phosphor-icons/react";
@@ -20,7 +21,7 @@ interface TaskCardProps {
   onDelete: (task: Task) => void;
 }
 
-export function TaskCardPresentation({
+export const TaskCardPresentation = memo(function TaskCardPresentation({
   task,
   onEdit,
   onDelete,
@@ -88,7 +89,7 @@ export function TaskCardPresentation({
       </CardFooter>
     </Card>
   );
-}
+});
 
 export function TaskCard(props: TaskCardProps) {
   const {

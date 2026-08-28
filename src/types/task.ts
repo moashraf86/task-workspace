@@ -69,6 +69,20 @@ export const PRIORITY_CONFIG: Record<
   },
 };
 
+export const PRIORITY_DOT: Record<Priority, string> = {
+  low: "bg-slate-400",
+  medium: "bg-blue-500",
+  high: "bg-orange-500",
+  urgent: "bg-red-500",
+};
+
+export const PRIORITY_LABEL: Record<Priority, string> = {
+  low: "Low",
+  medium: "Medium",
+  high: "High",
+  urgent: "Urgent",
+};
+
 export const ALL_STATUSES: TaskStatus[] = [
   "todo",
   "in-progress",

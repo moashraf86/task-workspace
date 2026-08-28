@@ -13,7 +13,7 @@ function App() {
         <ErrorBoundary>
           <div className="min-h-screen bg-background">
             <Header />
-            <main className="container py-6">
+            <main className="container py-6!">
               <FilterBar />
               <KanbanBoard />
             </main>

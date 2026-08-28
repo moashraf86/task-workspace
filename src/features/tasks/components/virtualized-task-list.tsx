@@ -16,11 +16,11 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { format } from "date-fns";
-import { PencilIcon, TrashIcon, DotsSixVerticalIcon } from "@phosphor-icons/react";
+import { DotsSixVerticalIcon } from "@phosphor-icons/react";
 import type { Task } from "@/types/task";
 import { PRIORITY_CONFIG, TASK_STATUS_CONFIG } from "@/types/task";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { TaskActionsMenu } from "./task-actions-menu";
 import { cn } from "@/lib/utils";
 
 interface VirtualizedTaskListProps {
@@ -65,7 +65,9 @@ function SortableRow({
       {...attributes}
       className={cn(
         "px-4 py-3 border-b bg-card flex items-center gap-3 touch-none",
-        isDragging ? "z-50 opacity-80 shadow-lg" : "hover:bg-accent/50 cursor-pointer",
+        isDragging
+          ? "z-50 opacity-80 shadow-lg"
+          : "hover:bg-accent/50 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
       )}
       onClick={() => !isDragging && onEditTask(task)}
     >
@@ -80,9 +82,7 @@ function SortableRow({
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <h3 className="font-medium text-sm truncate">
-            {task.title}
-          </h3>
+          <h3 className="font-medium text-sm truncate">{task.title}</h3>
           <Badge variant="outline" className={priorityConfig.color}>
             {priorityConfig.label}
           </Badge>
@@ -95,7 +95,13 @@ function SortableRow({
       </div>
 
       <div className="flex items-center gap-2 shrink-0">
-        <Badge variant="secondary">{statusConfig.label}</Badge>
+        <Badge variant="secondary" className="flex items-center gap-1.5">
+          <span
+            className={cn("size-2 rounded-full", statusConfig.color)}
+            aria-label={`${statusConfig.label} status`}
+          />
+          {statusConfig.label}
+        </Badge>
         <span
           className={
             isOverdue
@@ -105,30 +111,10 @@ function SortableRow({
         >
           {format(dueDate, "MMM d")}
         </span>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="size-7"
-          onClick={(e) => {
-            e.stopPropagation();
-            onEditTask(task);
-          }}
-        >
-          <PencilIcon className="size-3.5" />
-          <span className="sr-only">Edit</span>
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="size-7 text-destructive hover:text-destructive"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDeleteTask(task);
-          }}
-        >
-          <TrashIcon className="size-3.5" />
-          <span className="sr-only">Delete</span>
-        </Button>
+        <TaskActionsMenu
+          onEdit={() => onEditTask(task)}
+          onDelete={() => onDeleteTask(task)}
+        />
       </div>
     </div>
   );

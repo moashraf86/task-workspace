@@ -7,8 +7,9 @@ import type { Task } from "@/types/task";
 import {
   ALL_PRIORITIES,
   ALL_STATUSES,
-  PRIORITY_CONFIG,
   TASK_STATUS_CONFIG,
+  PRIORITY_DOT,
+  PRIORITY_LABEL,
 } from "@/types/task";
 import { useCreateTask, useUpdateTask } from "@/features/tasks/hooks/use-tasks";
 import {
@@ -27,15 +28,9 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
+import { cn } from "@/lib/utils";
 
 const taskFormSchema = z.object({
   title: z.string().min(1, "Title is required").max(100, "Title is too long"),
@@ -147,62 +142,79 @@ export function TaskFormModal({
                 </FormItem>
               )}
             />
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="priority"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Priority</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select priority" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {ALL_PRIORITIES.map((priority) => (
-                          <SelectItem key={priority} value={priority}>
-                            {PRIORITY_CONFIG[priority].label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Status</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {ALL_STATUSES.map((status) => (
-                          <SelectItem key={status} value={status}>
-                            {TASK_STATUS_CONFIG[status].label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="priority"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Priority</FormLabel>
+                  <FormControl>
+                    <div className="flex flex-wrap gap-2">
+                      {ALL_PRIORITIES.map((priority) => (
+                        <Button
+                          key={priority}
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className={cn(
+                            "h-8",
+                            field.value === priority &&
+                              "bg-primary/30! border-primary/50!",
+                          )}
+                          onClick={() => field.onChange(priority)}
+                        >
+                          <span
+                            className={cn(
+                              "size-2 rounded-full",
+                              PRIORITY_DOT[priority],
+                            )}
+                          />
+                          {PRIORITY_LABEL[priority]}
+                        </Button>
+                      ))}
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <span className="bg-red-400 hidden"></span>
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Status</FormLabel>
+                  <FormControl>
+                    <div className="flex flex-wrap gap-2">
+                      {ALL_STATUSES.map((status) => (
+                        <Button
+                          key={status}
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className={cn(
+                            "h-8",
+                            field.value === status &&
+                              "bg-primary/30! border-primary/50!",
+                          )}
+                          onClick={() => field.onChange(status)}
+                        >
+                          <span
+                            className={cn(
+                              "size-2 rounded-full",
+                              TASK_STATUS_CONFIG[status].color,
+                            )}
+                          />
+                          {TASK_STATUS_CONFIG[status].label}
+                        </Button>
+                      ))}
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="dueDate"
@@ -230,7 +242,11 @@ export function TaskFormModal({
               </Button>
               <Button
                 type="submit"
-                disabled={form.formState.isSubmitting || createTask.isPending || updateTask.isPending}
+                disabled={
+                  form.formState.isSubmitting ||
+                  createTask.isPending ||
+                  updateTask.isPending
+                }
               >
                 {form.formState.isSubmitting
                   ? "Saving..."

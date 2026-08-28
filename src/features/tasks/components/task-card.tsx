@@ -1,19 +1,14 @@
 import { memo } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { PencilIcon, TrashIcon } from "@phosphor-icons/react";
-import { format } from "date-fns";
+import { CalendarIcon } from "@phosphor-icons/react";
+import { format, isToday, isTomorrow } from "date-fns";
 import type { Task } from "@/types/task";
 import { PRIORITY_CONFIG } from "@/types/task";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { TaskActionsMenu } from "./task-actions-menu";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
 interface TaskCardProps {
   task: Task;
@@ -21,71 +16,59 @@ interface TaskCardProps {
   onDelete: (task: Task) => void;
 }
 
+function formatDueDate(date: Date): string {
+  if (isToday(date)) return "Today";
+  if (isTomorrow(date)) return "Tomorrow";
+  return format(date, "MMM d");
+}
+
 export const TaskCardPresentation = memo(function TaskCardPresentation({
   task,
   onEdit,
   onDelete,
 }: TaskCardProps) {
-  const priorityConfig = PRIORITY_CONFIG[task.priority];
   const dueDate = new Date(task.dueDate);
   const isOverdue = dueDate < new Date() && task.status !== "done";
+  const priorityConfig = PRIORITY_CONFIG[task.priority];
 
   return (
-    <Card
-      className="hover:shadow-md transition-shadow cursor-pointer"
-      onClick={() => onEdit(task)}
-    >
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="font-semibold leading-tight line-clamp-2">
-            {task.title}
-          </h3>
+    <Card className="relative group hover:shadow-sm transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 py-(--card-spacing) cursor-grab active:cursor-grabbing">
+      <CardContent>
+        <div className="flex items-center justify-between gap-1.5">
           <Badge variant="outline" className={priorityConfig.color}>
             {priorityConfig.label}
           </Badge>
+          <div className="z-10 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+            <TaskActionsMenu
+              onEdit={() => onEdit(task)}
+              onDelete={() => onDelete(task)}
+            />
+          </div>
         </div>
-      </CardHeader>
-      <CardContent className="pb-3">
-        {task.description && (
-          <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
-            {task.description}
-          </p>
-        )}
-        <div className="flex items-center gap-2 text-xs">
-          <span
-            className={
-              isOverdue ? "text-destructive font-medium" : "text-muted-foreground"
-            }
-          >
-            {format(dueDate, "MMM d, yyyy")}
-          </span>
-          {isOverdue && <span className="text-destructive">(overdue)</span>}
+        <div className="min-w-0">
+          <h3 className="font-medium text-sm leading-snug line-clamp-2">
+            {task.title}
+          </h3>
+          {task.description && (
+            <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
+              {task.description}
+            </p>
+          )}
         </div>
       </CardContent>
-      <CardFooter className="pt-0 flex justify-end gap-1">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={(e) => {
-            e.stopPropagation();
-            onEdit(task);
-          }}
+      <CardFooter className="flex items-center">
+        <div
+          className={cn(
+            "flex items-center gap-1.5 text-xs tabular-nums",
+            isOverdue
+              ? "text-destructive font-medium"
+              : "text-muted-foreground",
+          )}
         >
-          <PencilIcon className="h-4 w-4" />
-          <span className="sr-only">Edit</span>
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete(task);
-          }}
-          className="text-destructive hover:text-destructive"
-        >
-          <TrashIcon className="h-4 w-4" />
-          <span className="sr-only">Delete</span>
-        </Button>
+          <CalendarIcon className="size-3.5" />
+          <span>{formatDueDate(dueDate)}</span>
+          {isOverdue && <span className="text-destructive">· overdue</span>}
+        </div>
       </CardFooter>
     </Card>
   );
@@ -115,7 +98,10 @@ export function TaskCard(props: TaskCardProps) {
       style={style}
       {...listeners}
       {...attributes}
-      className={cn("touch-none", isDragging && "opacity-50")}
+      className={cn(
+        "touch-none cursor-grab",
+        isDragging && "cursor-grabbing shadow-lg",
+      )}
     >
       <TaskCardPresentation {...props} />
     </div>

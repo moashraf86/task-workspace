@@ -79,7 +79,7 @@ export function FilterBar() {
         {searchInput && (
           <button
             onClick={() => setSearchInput("")}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
             aria-label="Clear search"
           >
             <XIcon className="h-4 w-4" />
